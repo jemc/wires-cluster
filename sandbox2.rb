@@ -4,7 +4,7 @@ require 'dnssd'
 
 
 module Wires
-  class Server
+  class Jumper
     class << self
       
       def class_init
@@ -13,12 +13,19 @@ module Wires
       
       def serve!
         
-        server = TCPServer.new nil, @port
-        DNSSD.announce server, "wires-#{Process.pid}"
+        begin
+          @server = TCPServer.new nil, @port
+        rescue Errno::EADDRINUSE => e
+          puts 'Server already established...'
+          return
+        end
         
-        Thread.new do
-          loop do
-            socket = server.accept
+        DNSSD.announce @server, "wires-#{Process.pid}"
+        
+        @server_threads = []
+        loop do
+          socket = @server.accept
+          @server_threads << Thread.new do
             peeraddr = socket.peeraddr
             puts "Connection from %s:%d" % socket.peeraddr.values_at(2, 1)
           end
