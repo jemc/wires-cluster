@@ -1,6 +1,6 @@
 require 'rake/testtask'
 
-gemname = 'wires-jumper'
+gemname = 'wires-cluster'
 
 # Run tests
 task :default => [:test]
