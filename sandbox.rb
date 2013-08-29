@@ -1,20 +1,6 @@
 
-require 'dnssd'
+require_relative './udp.rb'
 
+tx = UDP::TX.new "224.0.1.33", 4567
 
-def find_and_bind
-  service = nil
-  DNSSD.browse! '_blackjack._tcp' do |reply|
-    DNSSD.resolve! reply do |reply|
-      service = reply
-      break
-    end
-    break
-  end
-
-  service ? (TCPSocket.new service.target, service.port) : nil
-end
-
-p socket = (find_and_bind)
-
-# socket.puts 'hello'
+tx.puts 'dog'
