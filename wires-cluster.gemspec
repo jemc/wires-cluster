@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
   s.name          = 'wires-cluster'
   s.version       = '0.0.0'
-  s.date          = '2013-08-27'
+  s.date          = '2013-08-28'
   s.summary       = "wires-cluster"
   s.description   = "Wires extension gem for firing and receiving events "\
-                    "between Ruby processes."
+                    "between Ruby processes with UDP multicasts."
   s.authors       = ["Joe McIlvain"]
   s.email         = 'joe.eli.mac@gmail.com'
   s.files         = Dir["{lib}/**/*.rb", "bin/*", "LICENSE", "*.md"]
