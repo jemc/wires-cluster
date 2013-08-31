@@ -39,7 +39,7 @@ module UDP
       msg
     end
     
-    def test!
+    def test!(message='test-string')
       tx = UDP::TX.new @group, @port
       rx = self
       
@@ -52,7 +52,7 @@ module UDP
       end
       Thread.pass
       
-      tx.puts 'test-string'
+      tx.puts message
       sleep 1
       thr.kill
       
