@@ -7,9 +7,10 @@ module UDP
   self.max_length = 65507
   
   class RX
-    def initialize(group, port)
-      @group = group
-      @port  = port
+    def initialize(group, port, selfish:false)
+      @group   = group
+      @port    = port
+      @selfish = selfish
       bind
     end
     
@@ -19,7 +20,11 @@ module UDP
       @socket.setsockopt Socket::IPPROTO_IP,
                          Socket::IP_ADD_MEMBERSHIP,
                          IPAddr.new(@group).hton + IPAddr.new("0.0.0.0").hton
-      # @socket.setsockopt Socket::SO_REUSEADDR, [1].pack('i')
+      
+      # Don't prevent future listening peers on the same machine
+      @socket.setsockopt(Socket::SOL_SOCKET,
+                         Socket::SO_REUSEADDR,
+                         [1].pack('i')) unless @selfish
       
       @socket.bind Socket::INADDR_ANY, @port
       return @socket
