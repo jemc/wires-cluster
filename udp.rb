@@ -4,7 +4,7 @@ require 'ipaddr'
 
 module UDP
   class << self;  attr_accessor :max_length;  end
-  self.max_length = 65507
+  self.max_length = 1024 # default max payload length
   
   
   class RX
