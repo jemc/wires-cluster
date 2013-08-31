@@ -39,7 +39,7 @@ module UDP
       msg
     end
     
-    def test!(message='test-string')
+    def test! message="#{self}.test!"
       tx = UDP::TX.new @group, @port
       rx = self
       
