@@ -1,11 +1,7 @@
 
 require 'wires'
 require "#{File.dirname __FILE__}/cluster/udp"
-
-# For now, must require in this order
-# to avoid active_support wrecking json/add/core
-require 'active_support/json'
-require 'json/add/core'
+require "#{File.dirname __FILE__}/cluster/json"
 
 
 module Wires
@@ -23,7 +19,7 @@ module Wires
       case action
       when :start
         
-        @rx ||= Wires::Cluster::UDP::RX.new GROUP, PORT
+        @rx ||= UDP::RX.new GROUP, PORT
         raise IOError, "Probably firewalled..." unless @rx.test!
         
         @rx_thread ||= Thread.new do
@@ -39,44 +35,5 @@ module Wires
       end
       
     end
-    
-    
-    class UnserializableObject
-      def to_s; '<UnserializableObject>'; end
-      def inspect; to_s; end
-      
-      def as_json(opt=nil)
-        { json_class:self.class.name }
-      end
-      
-      def self.json_create(data)
-        self.new
-      end
-    end
-    
-  end
-  
-  # Reopen Event to specify serialization methodology
-  class Event
-    def as_json(*serialization_args)
-      { json_class:self.class.name,
-        args:[*@args, **@kwargs] }
-    end
-    
-    def self.json_create(data)
-      self.new(*data['args'])
-    end
-  end
-  
-  
-end
-
-class Object
-  def as_json(opt=nil)
-    Wires::Cluster::UnserializableObject.new.as_json
-  end
-  
-  def self.json_create(data)
-    Wires::Cluster::UnserializableObject.new
   end
 end
