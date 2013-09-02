@@ -4,6 +4,9 @@
 require 'active_support/json'
 require 'json/add/core'
 
+# Add for reference when parsing for incomplete packets
+require 'json/pure/parser'
+
 
 # Define default JSON behavior for objects as UnserializableObject
 class Object
@@ -43,3 +46,42 @@ class Wires::Event
     self.new(*data['args'])
   end
 end
+
+
+# Add JSON-related functions to Wires::Cluster
+module Wires
+  module Cluster
+    class << self
+      
+      # Perform rudimentary JSON verification to make sure str is not 
+      #   a partial payload due to missing or yet-to-come packets,
+      #   then actually load in the JSON objects and return them
+      def _load_json(str)
+        ref_parser = JSON::Pure::Parser
+        
+        # Ignore json comments and strings for open/close count verification
+        stripped_str = str.gsub(ref_parser::IGNORE, '')
+                        .gsub(ref_parser::STRING, '')
+        
+        # Missing tail if any quote symbols remain after string purge
+        raise JSON::MissingTailError if stripped_str.match /(?<!\\)"/
+        
+        # Make sure open/close symbol counts match
+        [[ref_parser::OBJECT_OPEN, ref_parser::OBJECT_CLOSE],
+         [ref_parser::ARRAY_OPEN,  ref_parser::ARRAY_CLOSE]].each do |a, z|
+          case (stripped_str.scan(a).size) <=> (stripped_str.scan(z).size)
+          when  1; raise JSON::MissingTailError
+          when -1; raise JSON::MissingHeadError
+          end
+        end
+        
+        # Try to load objects from the string and return the result
+        JSON.load(str)
+      end; private :_load_json
+      
+    end
+  end
+end
+
+class JSON::MissingTailError < JSON::ParserError; end
+class JSON::MissingHeadError < JSON::ParserError; end
