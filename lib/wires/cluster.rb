@@ -2,6 +2,12 @@
 require 'wires'
 require "#{File.dirname __FILE__}/cluster/udp"
 
+# For now, must require in this order
+# to avoid active_support wrecking json/add/core
+require 'active_support/json'
+require 'json/add/core'
+
+
 module Wires
   module Cluster
     PORT  = 4567
@@ -36,11 +42,10 @@ module Wires
     
   end
   
-  
   # Reopen Event to specify serialization methodology
   class Event
     def to_json(*serialization_args)
-      { json_class:self.class.name, 
+      { json_class:self.class.name,
         args:[*@args, **@kwargs] }.to_json(*serialization_args)
     end
     
