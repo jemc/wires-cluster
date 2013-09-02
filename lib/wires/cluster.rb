@@ -7,6 +7,11 @@ module Wires
     PORT  = 4567
     GROUP = "224.0.1.33"
     
+    def self.listen!
+      self.listen
+      @rx_thread.join
+    end
+    
     def self.listen(action=:start)
       
       case action

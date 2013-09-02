@@ -1,6 +1,4 @@
 $LOAD_PATH.unshift(File.expand_path("./lib", File.dirname(__FILE__)))
 require 'wires/cluster'
 
-Wires::Cluster.listen
-
-loop { sleep 1 }
+Wires::Cluster.listen!
