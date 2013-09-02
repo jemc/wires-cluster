@@ -7,15 +7,25 @@ module Wires
     PORT  = 4567
     GROUP = "224.0.1.33"
     
-    def self.listen
-      @rx ||= Wires::Cluster::UDP::RX.new GROUP, PORT
-      raise IOError, "Probably firewalled..." unless @rx.test!
+    def self.listen(action=:start)
       
-      Thread.new do
-        loop do
-          msg = @rx.gets
-          p [msg.size, msg, msg.source]
+      case action
+      
+      when :start
+        @rx ||= Wires::Cluster::UDP::RX.new GROUP, PORT
+        raise IOError, "Probably firewalled..." unless @rx.test!
+        
+        @rx_thread ||= Thread.new do
+          loop do
+            msg = @rx.gets
+            p [msg.size, msg, msg.source]
+          end
         end
+      
+      when :stop
+        @rx_thread.kill; @rx_thread = nil
+        @rx.close;       @rx        = nil
+      
       end
     end
     

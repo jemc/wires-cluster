@@ -43,6 +43,10 @@ module Wires
           ObjectSpace.define_finalizer self, Proc.new { @socket.close }
         end
         
+        def close
+          @socket.close
+        end
+        
         def gets
           msg, addrinfo = @socket.recvfrom(UDP.max_length)
           msg.instance_variable_set :@source, addrinfo[3].to_s+':'+addrinfo[1].to_s
@@ -91,6 +95,10 @@ module Wires
           return @socket
         ensure
           ObjectSpace.define_finalizer self, Proc.new { @socket.close }
+        end
+        
+        def close
+          @socket.close
         end
         
         def puts(m)
