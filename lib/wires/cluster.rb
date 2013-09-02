@@ -40,13 +40,27 @@ module Wires
       
     end
     
+    
+    class UnserializableObject
+      def to_s; '<UnserializableObject>'; end
+      def inspect; to_s; end
+      
+      def as_json(opt=nil)
+        { json_class:self.class.name }
+      end
+      
+      def self.json_create(data)
+        self.new
+      end
+    end
+    
   end
   
   # Reopen Event to specify serialization methodology
   class Event
-    def to_json(*serialization_args)
+    def as_json(*serialization_args)
       { json_class:self.class.name,
-        args:[*@args, **@kwargs] }.to_json(*serialization_args)
+        args:[*@args, **@kwargs] }
     end
     
     def self.json_create(data)
@@ -54,4 +68,15 @@ module Wires
     end
   end
   
+  
+end
+
+class Object
+  def as_json(opt=nil)
+    Wires::Cluster::UnserializableObject.new.as_json
+  end
+  
+  def self.json_create(data)
+    Wires::Cluster::UnserializableObject.new
+  end
 end
