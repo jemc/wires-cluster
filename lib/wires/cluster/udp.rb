@@ -5,46 +5,66 @@ require 'ipaddr'
 module Wires
   module Cluster
     module UDP
+      
       class << self;  attr_accessor :max_length;  end
       self.max_length = 1024 # default max payload length
       
-      
-      class RX
-        
-        def initialize(group, port, selfish:false, bind_port:nil)
-          @group     = group
-          @port      = port
-          
-          @selfish   = selfish
-          @bind_port = bind_port
-          
-          bind
+      class Xceiver
+        def initialize(group, port, **kwargs)
+          @group = group
+          @port  = port
+          kwargs.each_pair { |k,v| instance_variable_set("@#{k}".to_sym, v) }
+          open
         end
         
-        def bind
+        def open
           @socket.close if @socket
           @socket = UDPSocket.new
-          
+          configure
+          return @socket
+        ensure # close the socket on object deconstruction
+          ObjectSpace.define_finalizer self, Proc.new { close }
+        end
+        
+        def close
+          @socket.close if @socket
+          @socket = nil
+        end
+      end
+      
+      
+      class TX < Xceiver
+        def configure
+          @socket.setsockopt Socket::IPPROTO_IP,
+                             Socket::IP_MULTICAST_TTL,
+                             [1].pack('i')
+        end
+        
+        def puts(m)
+          max = UDP.max_length
+          if m.size > max
+            self.puts m[0...max]
+            self.puts m[max...m.size]
+          else
+            @socket.send(m, 0, @group, @port)
+            m
+          end
+        end
+      end
+      
+      
+      class RX < Xceiver
+        def configure
           # Add membership to the multicast group
           @socket.setsockopt Socket::IPPROTO_IP,
                              Socket::IP_ADD_MEMBERSHIP,
                              IPAddr.new(@group).hton + IPAddr.new("0.0.0.0").hton
-          
           # Don't prevent future listening peers on the same machine
           @socket.setsockopt(Socket::SOL_SOCKET,
                              Socket::SO_REUSEADDR,
                              [1].pack('i')) unless @selfish
-          
           # Bind the socket to the specified port or any open port on the machine
           @socket.bind (@bind_port or Socket::INADDR_ANY), @port
-          
-          return @socket
-        ensure # close the socket on object deconstruction
-          ObjectSpace.define_finalizer self, Proc.new { @socket.close }
-        end
-        
-        def close
-          @socket.close
         end
         
         def gets
@@ -73,47 +93,7 @@ module Wires
           
           passed
         end
-        
       end
-      
-      
-      class TX
-        
-        def initialize(group, port)
-          @group = group
-          @port  = port
-          bind
-        end
-        
-        def bind
-          @socket.close if @socket
-          @socket = UDPSocket.open
-          
-          @socket.setsockopt Socket::IPPROTO_IP,
-                             Socket::IP_MULTICAST_TTL,
-                             [1].pack('i')
-          return @socket
-        ensure
-          ObjectSpace.define_finalizer self, Proc.new { @socket.close }
-        end
-        
-        def close
-          @socket.close
-        end
-        
-        def puts(m)
-          max = UDP.max_length
-          if m.size > max
-            self.puts m[0...max]
-            self.puts m[max...m.size]
-          else
-            @socket.send(m, 0, @group, @port)
-            m
-          end
-        end
-        
-      end
-      
       
     end
   end

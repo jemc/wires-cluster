@@ -49,7 +49,7 @@ module Wires
           rescue JSON::ParserError
             ongoing[msg.source] = nil
           end
-          p ongoing
+          
         end
       end; private :_rx_loop
       
