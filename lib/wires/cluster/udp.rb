@@ -27,6 +27,7 @@ module Wires
         def open
           @socket.close if @socket
           @socket = UDPSocket.new
+          @local_ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
           configure
           return @socket
         ensure # close the socket on object deconstruction
@@ -37,6 +38,7 @@ module Wires
           @socket.close if @socket
           @socket = nil
         end
+        
       end
       
       
