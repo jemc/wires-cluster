@@ -4,9 +4,6 @@ require "#{File.dirname __FILE__}/cluster/udp"
 require "#{File.dirname __FILE__}/cluster/json"
 
 
-Wires::Cluster::UDP.max_length = 7
-
-
 module Wires
   module Cluster
     PORT  = 4567
