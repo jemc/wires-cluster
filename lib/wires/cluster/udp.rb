@@ -10,6 +10,13 @@ module Wires
       self.max_length = 1024 # default max payload length
       
       class Xceiver
+        def self.new(*args)
+          if (self.class==Xceiver)
+            raise TypeError, "#{self.class} is an 'abstract class' only."\
+                             "  Inherit it; don't instantiate it!"; end
+          super
+        end
+        
         def initialize(group, port, **kwargs)
           @group = group
           @port  = port
