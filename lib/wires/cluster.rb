@@ -30,6 +30,16 @@ module Wires
         end
       end
       
+      # Enable UDP sending of fired events (or disable, if action==:stop)
+      def spout(action=:start)
+        case action
+        when :start
+          @tx ||= UDP::TX.new GROUP, PORT
+        when :stop
+          @tx.close; @tx = nil
+        end
+      end
+      
       # Loop through incoming messages and deploy valid firable events
       def _rx_loop
         ongoing = {}
@@ -40,6 +50,7 @@ module Wires
           
           begin
             data = _load_json(ongoing[msg.source])
+            
             p [data, msg.source]
             ongoing[msg.source] = nil
           rescue JSON::MissingTailError
