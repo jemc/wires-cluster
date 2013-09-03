@@ -10,6 +10,8 @@ module Wires
       self.max_length = 1024 # default max payload length
       
       class Xceiver
+        attr_reader :group, :port, :socket, :local_ip, :local_port
+        
         def self.new(*args)
           if (self.class==Xceiver)
             raise TypeError, "#{self.class} is an 'abstract class' only."\
@@ -27,10 +29,11 @@ module Wires
         def open
           @socket.close if @socket
           @socket = UDPSocket.new
-          @local_ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
           configure
+          @local_ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
+          @local_port = @socket.addr[1]
           return @socket
-        ensure # close the socket on object deconstruction
+        ensure
           ObjectSpace.define_finalizer self, Proc.new { close }
         end
         
@@ -44,9 +47,12 @@ module Wires
       
       class TX < Xceiver
         def configure
+          # Set up for multicasting
           @socket.setsockopt Socket::IPPROTO_IP,
                              Socket::IP_MULTICAST_TTL,
                              [1].pack('i')
+          # Bind to any available port
+          @socket.bind "0.0.0.0", (@bind_port or 0)
         end
         
         def puts(m)
@@ -73,7 +79,7 @@ module Wires
                              Socket::SO_REUSEADDR,
                              [1].pack('i')) unless @selfish
           # Bind the socket to the specified port or any open port on the machine
-          @socket.bind (@bind_port or Socket::INADDR_ANY), @port
+          @socket.bind Socket::INADDR_ANY, @port
         end
         
         def gets
