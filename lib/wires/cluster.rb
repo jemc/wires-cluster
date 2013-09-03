@@ -35,7 +35,11 @@ module Wires
         case action
         when :start
           @tx ||= UDP::TX.new GROUP, PORT
+          @tx_proc = Wires::Channel.after_fire(true) do |e,c|
+            @tx.puts JSON.dump [e,c]
+          end
         when :stop
+          Wires::Channel.remove_hook :@after_fire, @tx_proc
           @tx.close; @tx = nil
         end
       end

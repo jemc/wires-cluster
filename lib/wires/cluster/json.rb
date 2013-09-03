@@ -38,12 +38,24 @@ end
 # Define a serialization scheme for Wires Events
 class Wires::Event
   def as_json(*serialization_args)
-    { json_class:self.class.name,
-      args:[*@args, **@kwargs] }
+    { json_class: self.class.name,
+      args: [*@args, **@kwargs] }
   end
   
   def self.json_create(data)
     self.new(*data['args'])
+  end
+end
+
+# Define a serialization scheme for Wires Channels
+class Wires::Channel
+  def as_json(*serialization_args)
+    { json_class: self.class.name,
+      name:       @name }
+  end
+  
+  def self.json_create(data)
+    self.new(data['name'])
   end
 end
 
