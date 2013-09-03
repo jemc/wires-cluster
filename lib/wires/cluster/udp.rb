@@ -102,8 +102,9 @@ module Wires
           Thread.pass
           
           tx.puts message
-          sleep 1
+          sleep 1 if thr.status
           thr.kill
+          tx.close
           
           passed
         end
