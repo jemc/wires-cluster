@@ -34,14 +34,13 @@ module Wires
           @local_port = @socket.addr[1]
           return @socket
         ensure
-          ObjectSpace.define_finalizer self, Proc.new { close }
+          @finalizer ||= ObjectSpace.define_finalizer self, Proc.new { close }
         end
         
         def close
           @socket.close if @socket
           @socket = nil
         end
-        
       end
       
       
