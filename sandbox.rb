@@ -5,3 +5,5 @@ Wires::Hub.run
 Wires::Cluster.spout
 
 fire :event, 'channel'
+
+Wires::Hub.kill

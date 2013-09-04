@@ -36,7 +36,7 @@ module Wires
         when :start
           @tx ||= UDP::TX.new GROUP, PORT
           @tx_proc = Wires::Channel.after_fire(true) do |e,c|
-            @tx.puts JSON.dump [e,c]
+            @tx.puts JSON.dump [e,c] unless e.cluster_source
           end
         when :stop
           Wires::Channel.remove_hook :@after_fire, @tx_proc
@@ -54,8 +54,11 @@ module Wires
           
           begin
             data = _load_json(ongoing[msg.source])
-            
-            p [data, msg.source]
+            if (data[0].is_a? Event) and (data[1].is_a? Channel)
+              event, chan = data
+              event.instance_variable_set(:@cluster_source, msg.source)
+              Convenience::fire *data
+            end
             ongoing[msg.source] = nil
           rescue JSON::MissingTailError
           rescue JSON::ParserError
@@ -68,4 +71,8 @@ module Wires
     end
     
   end
+end
+
+class Wires::Event
+  attr_reader :cluster_source
 end
