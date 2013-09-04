@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name          = 'wires-cluster'
-  s.version       = '0.0.0'
-  s.date          = '2013-08-28'
+  s.version       = '0.0.1'
+  s.date          = '2013-09-03'
   s.summary       = "wires-cluster"
   s.description   = "Wires extension gem for firing and receiving events "\
                     "between Ruby processes with UDP multicasts."
@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.licenses      = "Copyright (c) Joe McIlvain. All rights reserved "
   
   s.add_dependency('wires')
+  s.add_dependency('json')
   
   s.add_development_dependency('rake')
   s.add_development_dependency('wires-test')
